@@ -472,6 +472,33 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Function to share an activity on social platforms
+  function shareActivity(platform, activityName, details) {
+    const schedule = formatSchedule(details);
+    const shareText = `Check out "${activityName}" at Mergington High School! ${details.description} Schedule: ${schedule}`;
+    const shareUrl = window.location.href;
+    const encodedText = encodeURIComponent(shareText);
+    const encodedUrl = encodeURIComponent(shareUrl);
+
+    const urls = {
+      twitter: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedText}`,
+      whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
+    };
+
+    if (platform === "copy") {
+      navigator.clipboard
+        .writeText(`${shareText} ${shareUrl}`)
+        .then(() => showMessage("Link copied to clipboard!", "success"))
+        .catch(() => showMessage("Failed to copy link.", "error"));
+      return;
+    }
+
+    if (urls[platform]) {
+      window.open(urls[platform], "_blank", "noopener,noreferrer");
+    }
+  }
+
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
@@ -569,6 +596,13 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="share-buttons">
+        <span class="share-label">Share:</span>
+        <button class="share-btn share-twitter" data-platform="twitter" title="Share on Twitter/X" aria-label="Share on Twitter/X">𝕏</button>
+        <button class="share-btn share-facebook" data-platform="facebook" title="Share on Facebook" aria-label="Share on Facebook">f</button>
+        <button class="share-btn share-whatsapp" data-platform="whatsapp" title="Share on WhatsApp" aria-label="Share on WhatsApp">💬</button>
+        <button class="share-btn share-copy" data-platform="copy" title="Copy link" aria-label="Copy link to clipboard">🔗</button>
+      </div>
     `;
 
     // Add click handlers for delete buttons
@@ -586,6 +620,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    // Add click handlers for share buttons
+    const shareButtons = activityCard.querySelectorAll(".share-btn");
+    shareButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        shareActivity(button.dataset.platform, name, details);
+      });
+    });
 
     activitiesList.appendChild(activityCard);
   }
